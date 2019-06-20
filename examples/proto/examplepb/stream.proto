@@ -3,6 +3,7 @@ option go_package = "examplepb";
 package grpc.gateway.examples.examplepb;
 
 import "google/api/annotations.proto";
+import "google/api/httpbody.proto";
 import "google/protobuf/empty.proto";
 import "examples/proto/examplepb/a_bit_of_everything.proto";
 import "examples/proto/sub/message.proto";
@@ -18,6 +19,11 @@ service StreamService {
 	rpc List(google.protobuf.Empty) returns (stream ABitOfEverything) {
 		option (google.api.http) = {
 			get: "/v1/example/a_bit_of_everything"
+		};
+	}
+	rpc HttpBodyStream(google.protobuf.Empty) returns (stream google.api.HttpBody) {
+		option (google.api.http) = {
+			get: "/v1/example/a_bit_of_everything/httpbody"
 		};
 	}
 	rpc BulkEcho(stream grpc.gateway.examples.sub.StringMessage) returns (stream grpc.gateway.examples.sub.StringMessage) {

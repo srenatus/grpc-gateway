@@ -15,6 +15,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/examples/proto/sub"
 	"github.com/grpc-ecosystem/grpc-gateway/examples/proto/sub2"
 	"github.com/rogpeppe/fastuuid"
+	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -117,6 +118,30 @@ func (s *_ABitOfEverythingServer) Lookup(ctx context.Context, msg *sub2.IdMessag
 		"bar": "bar2",
 	}))
 	return nil, status.Errorf(codes.NotFound, "not found")
+}
+
+func (s *_ABitOfEverythingServer) HttpBodyStream(_ *empty.Empty, stream examples.StreamService_HttpBodyStreamServer) error {
+	s.m.Lock()
+	defer s.m.Unlock()
+
+	err := stream.SendHeader(metadata.Pairs("count", fmt.Sprintf("%d", len(s.v))))
+	if err != nil {
+		return nil
+	}
+
+	i := 0
+	for u, _ := range s.v {
+		body := httpbody.HttpBody{
+			ContentType: "application/csv-stream",
+			Data:        []byte(fmt.Sprintf("%d,%d", u, i)),
+		}
+		if err := stream.Send(&body); err != nil {
+			return err
+		}
+		i++
+	}
+
+	return nil
 }
 
 func (s *_ABitOfEverythingServer) List(_ *empty.Empty, stream examples.StreamService_ListServer) error {
